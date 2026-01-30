@@ -54,8 +54,8 @@ jobs:
           ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} "set -eu
             cd '${{ secrets.CYON_PATH }}'
 
-            export COMPOSER_ALLOW_SUPERUSER=1
-            export COMPOSER_AUTH='{\"github-oauth\":{\"github.com\":\"${{ secrets.GH_TOKEN }}\"}}'
+            composer config -g github-oauth.github.com '${{ secrets.GH_TOKEN }}'
+            composer config -g github-protocols https
 
             composer install --no-interaction --no-dev --prefer-dist
             composer dump-autoload -o --no-interaction
