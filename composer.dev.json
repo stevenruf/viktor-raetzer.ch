@@ -1,0 +1,17 @@
+{
+  "repositories": [
+    {
+      "type": "path",
+      "url": "/var/www/pframe",
+      "options": { "symlink": true }
+    }
+  ],
+  "require": {
+    "pframe/pframe": "^1.0"
+  },
+  "config": {
+    "allow-plugins": {
+      "php-http/discovery": true
+    }
+  }
+}

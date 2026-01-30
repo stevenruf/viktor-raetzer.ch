@@ -1,0 +1,30 @@
+# --- runtime / build ---
+/vendor/
+/var/
+
+# --- secrets ---
+/config/.env
+/config/.env.*
+!.env.example
+
+# --- WordPress (nicht versionieren) ---
+/public/world/
+
+# --- project-specific excludes ---
+/public/import/
+/public/scripts/
+
+# --- import dir ---
+/import/
+
+# --- mac / editor ---
+.DS_Store
+.idea/
+.vscode/
+
+# --- database dumps ---
+*.sql
+*.sql.gz
+
+# --- backups ---
+/backups/

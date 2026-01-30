@@ -1,0 +1,43 @@
+name: deploy
+
+on:
+  push:
+    tags:
+      - "v*.*.*"
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Setup SSH
+        shell: bash
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.CYON_SSH_KEY }}" > ~/.ssh/id_rsa
+          chmod 600 ~/.ssh/id_rsa
+          ssh-keyscan -H "${{ secrets.CYON_HOST }}" >> ~/.ssh/known_hosts
+
+      - name: Deploy (git checkout tag + composer install)
+        shell: bash
+        run: |
+          ssh "${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }}" << 'SSH'
+          set -euo pipefail
+
+          cd "nixawepy/projects/viktor-raetzer.ch"
+
+          echo "→ fetching tags"
+          git fetch --all --tags
+
+          echo "→ checkout tag: ${GITHUB_REF_NAME}"
+          git checkout -f "${GITHUB_REF_NAME}"
+
+          echo "→ composer install"
+          export COMPOSER_ALLOW_SUPERUSER=1
+          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
+
+          echo "→ dump autoload"
+          composer dump-autoload -o --no-interaction
+
+          echo "✅ deploy done: ${GITHUB_REF_NAME}"
+          SSH
