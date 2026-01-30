@@ -36,14 +36,15 @@ jobs:
             --exclude 'config/.env.*' \
             ./ ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }}:${{ secrets.CYON_PATH }}/
 
-      - name: Composer install on Cyon
+      - name: Composer install on Cyon (token only, no persistence)
         run: |
           ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} "set -eu
             cd '${{ secrets.CYON_PATH }}'
 
-            composer config -g github-oauth.github.com '${{ secrets.GH_TOKEN }}'
-            composer config -g github-protocols https
+            export COMPOSER_ALLOW_SUPERUSER=1
+            export COMPOSER_AUTH='{\"github-oauth\":{\"github.com\":\"${{ secrets.GH_TOKEN }}\"}}'
 
+            composer config -g github-protocols https >/dev/null
             composer install --no-interaction --no-dev --prefer-dist
             composer dump-autoload -o --no-interaction
           "
