@@ -7,7 +7,7 @@
       "url": "https://github.com/stevenruf/pFrame.git"    }
   ],
   "require": {
-    "pframe/pframe": "1.0.1"
+    "pframe/pframe": "1.0.2"
   },
   "autoload": {
     "psr-4": {
