@@ -39,19 +39,28 @@ jobs:
       - name: Verify remote files after rsync
         run: |
           ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} "set -eu; cd '${{ secrets.CYON_PATH }}'; pwd; ls -la; ls -la composer.json || true"            
+      
+      - name: Verify vendor after composer
+        run: |
+          ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} "set -eu
+            cd '${{ secrets.CYON_PATH }}'
+            ls -la
+            ls -la vendor | head -n 50 || true
+            php -r \"require 'vendor/autoload.php'; var_dump(class_exists('pFrame\\\\Core\\\\pFrameCore'));\" || true
+          "
 
       - name: Composer install on Cyon
         run: |
-          ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} << 'SSH'
-            set -eu
-            cd "${CYON_PATH}"
+          ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} "set -eu
+            cd '${{ secrets.CYON_PATH }}'
 
             export COMPOSER_ALLOW_SUPERUSER=1
-            export COMPOSER_AUTH='{"github-oauth":{"github.com":"'"${GH_TOKEN}"'"}}'
+            export COMPOSER_AUTH='{\"github-oauth\":{\"github.com\":\"${{ secrets.GH_TOKEN }}\"}}'
 
             composer install --no-interaction --no-dev --prefer-dist
             composer dump-autoload -o --no-interaction
-          SSH
+          "
+          
         env:
           CYON_PATH: ${{ secrets.CYON_PATH }}
           GH_TOKEN: ${{ secrets.GH_TOKEN }}

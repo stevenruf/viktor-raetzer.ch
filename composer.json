@@ -1,8 +1,13 @@
 {
   "name": "projects/project",
   "type": "project",
+  "repositories": [
+    {
+      "type": "vcs",
+      "url": "https://github.com/stevenruf/pFrame.git"    }
+  ],
   "require": {
-    "pframe/pframe": "^1.0"
+    "pframe/pframe": "1.0.1"
   },
   "autoload": {
     "psr-4": {

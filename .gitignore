@@ -1,6 +1,7 @@
 # --- runtime / build ---
 /vendor/
 /var/
+/bin/
 
 # --- secrets ---
 /config/.env
