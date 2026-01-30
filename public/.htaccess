@@ -1,11 +1,11 @@
-# This file was updated by Duplicator Pro on 2026-01-23 21:36:27.
-# See the original_files_ folder for the original source_site_htaccess file.
-# BEGIN WordPress
-# Die Direktiven (Zeilen) zwischen „BEGIN WordPress“ und „END WordPress“ sind
-# dynamisch generiert und sollten nur über WordPress-Filter geändert werden.
-# Alle Änderungen an den Direktiven zwischen diesen Markierungen werden überschrieben.
 <IfModule mod_rewrite.c>
 RewriteEngine On
+
+# ---- pFrame first ----
+RewriteRule ^app(/.*)?$ app/index.php [L,QSA]
+RewriteRule ^api(/.*)?$ api/index.php [L,QSA]
+
+# ---- WordPress ----
 RewriteRule .* - [E=HTTP_AUTHORIZATION:%{HTTP:Authorization}]
 RewriteBase /
 RewriteRule ^index\.php$ - [L]
@@ -13,5 +13,3 @@ RewriteCond %{REQUEST_FILENAME} !-f
 RewriteCond %{REQUEST_FILENAME} !-d
 RewriteRule . /index.php [L]
 </IfModule>
-
-# END WordPress
