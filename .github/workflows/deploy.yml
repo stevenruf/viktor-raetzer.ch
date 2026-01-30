@@ -1,43 +1,57 @@
-name: deploy
+name: Deploy to Cyon
 
 on:
   push:
-    tags:
-      - "v*.*.*"
+    branches: [ "main" ]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Setup SSH
-        shell: bash
+        uses: webfactory/ssh-agent@v0.9.0
+        with:
+          ssh-private-key: ${{ secrets.CYON_SSH_KEY }}
+
+      - name: Add known_hosts
         run: |
           mkdir -p ~/.ssh
-          echo "${{ secrets.CYON_SSH_KEY }}" > ~/.ssh/id_rsa
-          chmod 600 ~/.ssh/id_rsa
-          ssh-keyscan -H "${{ secrets.CYON_HOST }}" >> ~/.ssh/known_hosts
+          ssh-keyscan -H ${{ secrets.CYON_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Deploy (git checkout tag + composer install)
-        shell: bash
+      - name: Rsync project files (safe)
         run: |
-          ssh "${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }}" << 'SSH'
-          set -euo pipefail
+          rsync -az --delete \
+            --exclude '.git/' \
+            --exclude '.github/' \
+            --exclude 'vendor/' \
+            --exclude 'var/' \
+            --exclude 'public/world/' \
+            --exclude 'public/import/' \
+            --exclude 'public/scripts/' \
+            --exclude 'config/.env' \
+            --exclude 'config/.env.*' \
+            ./ ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }}:${{ secrets.CYON_PATH }}/
 
-          cd "nixawepy/projects/viktor-raetzer.ch"
+      - name: Verify remote files after rsync
+        run: |
+          ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} "set -eu; cd '${{ secrets.CYON_PATH }}'; pwd; ls -la; ls -la composer.json || true"            
 
-          echo "→ fetching tags"
-          git fetch --all --tags
+      - name: Composer install on Cyon
+        run: |
+          ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} << 'SSH'
+            set -eu
+            cd "${CYON_PATH}"
 
-          echo "→ checkout tag: ${GITHUB_REF_NAME}"
-          git checkout -f "${GITHUB_REF_NAME}"
+            export COMPOSER_ALLOW_SUPERUSER=1
+            export COMPOSER_AUTH='{"github-oauth":{"github.com":"'"${GH_TOKEN}"'"}}'
 
-          echo "→ composer install"
-          export COMPOSER_ALLOW_SUPERUSER=1
-          composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader
-
-          echo "→ dump autoload"
-          composer dump-autoload -o --no-interaction
-
-          echo "✅ deploy done: ${GITHUB_REF_NAME}"
+            composer install --no-interaction --no-dev --prefer-dist
+            composer dump-autoload -o --no-interaction
           SSH
+        env:
+          CYON_PATH: ${{ secrets.CYON_PATH }}
+          GH_TOKEN: ${{ secrets.GH_TOKEN }}
