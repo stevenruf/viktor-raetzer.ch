@@ -22,7 +22,7 @@ jobs:
           mkdir -p ~/.ssh
           ssh-keyscan -H ${{ secrets.CYON_HOST }} >> ~/.ssh/known_hosts
 
-      - name: Rsync project files (safe)
+      - name: Rsync project files
         run: |
           rsync -az --delete \
             --exclude '.git/' \
@@ -36,19 +36,6 @@ jobs:
             --exclude 'config/.env.*' \
             ./ ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }}:${{ secrets.CYON_PATH }}/
 
-      - name: Verify remote files after rsync
-        run: |
-          ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} "set -eu; cd '${{ secrets.CYON_PATH }}'; pwd; ls -la; ls -la composer.json || true"            
-      
-      - name: Verify vendor after composer
-        run: |
-          ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} "set -eu
-            cd '${{ secrets.CYON_PATH }}'
-            ls -la
-            ls -la vendor | head -n 50 || true
-            php -r \"require 'vendor/autoload.php'; var_dump(class_exists('pFrame\\\\Core\\\\pFrameCore'));\" || true
-          "
-
       - name: Composer install on Cyon
         run: |
           ssh ${{ secrets.CYON_USER }}@${{ secrets.CYON_HOST }} "set -eu
@@ -60,7 +47,3 @@ jobs:
             composer install --no-interaction --no-dev --prefer-dist
             composer dump-autoload -o --no-interaction
           "
-          
-        env:
-          CYON_PATH: ${{ secrets.CYON_PATH }}
-          GH_TOKEN: ${{ secrets.GH_TOKEN }}
