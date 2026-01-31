@@ -15,9 +15,6 @@
 /public/import/
 /public/scripts/
 
-# --- import dir ---
-/import/
-
 # --- mac / editor ---
 .DS_Store
 .idea/
