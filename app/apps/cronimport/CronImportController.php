@@ -182,7 +182,8 @@ HTML;
             $code = (int)($status['status'] ?? 0);
             $ok = ($code === 200);
 
-            $items[] = [
+            // Build base item
+            $item = [
                 'name' => $name,
                 'id' => $id,
                 'ok' => $ok,
@@ -191,7 +192,15 @@ HTML;
                 'processing_http' => (int)($procRes['http_code'] ?? 0),
                 'curl_errno' => (int)($procRes['errno'] ?? 0),
                 'curl_error' => (string)($procRes['error'] ?? ''),
+                'processing_url' => (string)($procRes['effective_url'] ?? ''),
             ];
+
+            // Only attach response body when something went wrong
+            if (!$ok) {
+                $item['processing_body'] = substr($procBody, 0, 500);
+            }
+
+            $items[] = $item;
 
             if (!$ok) {
                 $errors++;
@@ -275,8 +284,8 @@ HTML;
                 CURLOPT_FOLLOWLOCATION => true,
                 CURLOPT_CONNECTTIMEOUT => 10,
                 CURLOPT_TIMEOUT => 60,
-                CURLOPT_SSL_VERIFYPEER => false, // local dev convenience; set true on prod if using https
-                CURLOPT_SSL_VERIFYHOST => 0,
+                CURLOPT_SSL_VERIFYPEER => true, // local dev convenience; set true on prod if using https
+                CURLOPT_SSL_VERIFYHOST => 2,
                 CURLOPT_USERAGENT => 'pFrame-CronImport/1.0',
                 CURLOPT_HTTPHEADER => $headers,
             ]);
@@ -285,6 +294,7 @@ HTML;
             $result['errno'] = (int)curl_errno($ch);
             $result['error'] = (string)curl_error($ch);
             $result['http_code'] = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            $result['effective_url'] = (string)curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
 
             if ($body !== false) {
                 $result['body'] = (string)$body;
