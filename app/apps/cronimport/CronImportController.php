@@ -294,7 +294,18 @@ HTML;
             $result['errno'] = (int)curl_errno($ch);
             $result['error'] = (string)curl_error($ch);
             $result['http_code'] = (int)curl_getinfo($ch, CURLINFO_HTTP_CODE);
-            $result['effective_url'] = (string)curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+            $effectiveUrl = (string)curl_getinfo($ch, CURLINFO_EFFECTIVE_URL);
+
+            if ($effectiveUrl !== '') {
+                $parts = parse_url($effectiveUrl);
+
+                $path  = $parts['path']  ?? '';
+                $query = isset($parts['query']) ? '?' . $parts['query'] : '';
+
+                $result['effective_url'] = $path . $query;
+            } else {
+                $result['effective_url'] = '';
+            }
 
             if ($body !== false) {
                 $result['body'] = (string)$body;
