@@ -5,4 +5,5 @@ return [
   'test',
   'productimport',
   'optimizeimages',
+  'cronimport',
 ];
